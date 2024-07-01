@@ -16,6 +16,7 @@ import {
   SignalEvaluateResponse,
   StatementsListResponse,
   Paystub,
+  PersonalFinanceCategory,
 } from "plaid/dist/api";
 
 const formatCurrency = (
@@ -44,6 +45,7 @@ interface TransactionsDataItem {
   amount: string;
   date: string;
   name: string;
+  category: string | undefined | null;
 }
 
 interface IdentityDataItem {
@@ -194,6 +196,10 @@ export const transactionsCategories: Array<Categories> = [
   {
     title: "Date",
     field: "date",
+  },
+  {
+    title: "Category",
+    field: "category",
   },
 ];
 
@@ -439,14 +445,14 @@ export const signalCategories: Array<Categories> = [
 ];
 
 export const statementsCategories: Array<Categories> = [
-  { 
+  {
     title: "Account name",
-    field: "account"
+    field: "account",
   },
   {
     title: "Statement Date",
-    field: "date"
-  }
+    field: "date",
+  },
 ];
 
 export const incomePaystubsCategories: Array<Categories> = [
@@ -481,12 +487,17 @@ export const transformAuthData = (data: AuthGetResponse) => {
   });
 };
 
-export const transformStatementsData = (data: {json: StatementsListResponse}) => {
+export const transformStatementsData = (data: {
+  json: StatementsListResponse;
+}) => {
   const account = data.json.accounts[0]!.account_name;
   const statements = data.json.accounts[0]!.statements;
   return statements!.map((s) => {
     const item: DataItem = {
-      date: Intl.DateTimeFormat('en', { month: 'long', year:'numeric' }).format(new Date(s.year!, s.month!)),
+      date: Intl.DateTimeFormat("en", {
+        month: "long",
+        year: "numeric",
+      }).format(new Date(s.year!, s.month!)),
       account: account,
     };
     return item;
@@ -501,6 +512,7 @@ export const transformTransactionsData = (data: {
       name: t.name!,
       amount: formatCurrency(t.amount!, t.iso_currency_code),
       date: t.date,
+      category: t.personal_finance_category?.detailed,
     };
     return item;
   });
